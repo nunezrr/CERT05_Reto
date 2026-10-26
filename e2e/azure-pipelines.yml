@@ -27,8 +27,8 @@ stages:
     jobs:
       - job: preparar
         steps:
-          - task: NodeTool@0
-            inputs: { versionSpec: '20.x' }
+          - task: UseNode@1
+            inputs: { version: '20.x' }
           - script: npm install
             displayName: 'Instalar app Tienda (Express + Faker)'
             workingDirectory: 'app-tienda'
@@ -53,8 +53,8 @@ stages:
             firefox:  { BROWSER: 'firefox' }
           maxParallel: 2
         steps:
-          - task: NodeTool@0
-            inputs: { versionSpec: '20.x' }
+          - task: UseNode@1
+            inputs: { version: '20.x' }
           - task: UsePythonVersion@0
             inputs: { versionSpec: '$(PYTHON_VERSION)' }
           - script: |
@@ -127,8 +127,8 @@ stages:
     jobs:
       - job: e2e_sauce
         steps:
-          - task: NodeTool@0
-            inputs: { versionSpec: '20.x' }
+          - task: UseNode@1
+            inputs: { version: '20.x' }
           - task: UsePythonVersion@0
             inputs: { versionSpec: '$(PYTHON_VERSION)' }
 

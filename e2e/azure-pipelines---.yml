@@ -50,9 +50,9 @@ stages:
           - checkout: self
 
           # 2) Preparar Node y Python
-          - task: NodeTool@0
+          - task: UseNode@1
             displayName: 'Usar Node $(NODE_VERSION)'
-            inputs: { versionSpec: '$(NODE_VERSION)' }
+            inputs: { version: '$(NODE_VERSION)' }
           - task: UsePythonVersion@0
             displayName: 'Usar Python $(PYTHON_VERSION)'
             inputs: { versionSpec: '$(PYTHON_VERSION)' }
