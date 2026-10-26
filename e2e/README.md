@@ -1,17 +1,13 @@
-# Dia 5 — DevOps + IA + ejecucion en la nube (Sauce Labs)
+# DevOps + IA + ejecucion en la nube (Sauce Labs)
 
-Toma el framework del Dia 4 (Playwright + Screenplay + BDD en Python) y lo lleva
+Toma el framework (Playwright + Screenplay + BDD en Python) y lo lleva
 a **ejecucion en navegadores reales en la nube** con **Sauce Labs**, integrado a
 un **pipeline de Azure**. La clave: **las mismas pruebas** corren en local o en la
 nube cambiando solo variables de entorno. El codigo de las pruebas NO cambia.
 
-> Puente con el Dia 4: ya teniamos las pruebas portables por `BASE_URL`. Hoy
-> sumamos la portabilidad del NAVEGADOR: local (Chromium) o Sauce (Chrome/Edge
-> reales en VMs). Y lo metemos al pipeline.
-
 ---
 
-## Que es nuevo frente al Dia 4
+## Que es nuevo 
 
 | Pieza | Dia 4 | Dia 5 |
 |---|---|---|
@@ -25,11 +21,10 @@ nube cambiando solo variables de entorno. El codigo de las pruebas NO cambia.
 ## Estructura
 
 ```
-tienda-nube/
-├─ app-tienda/            # La app bajo prueba (igual que Dia 4)
-├─ screenplay/            # Patron Screenplay (sin cambios)
-├─ features/              # Casos en Gherkin (sin cambios)
-├─ tests/                 # Steps pytest-bdd (sin cambios)
+e2e/
+├─ screenplay/            # Patron Screenplay 
+├─ features/              # Casos en Gherkin 
+├─ tests/                 # Steps pytest-bdd 
 ├─ conftest.py            # NUEVO: actor usa navegador LOCAL o SAUCE segun env
 ├─ azure-pipelines.yml    # NUEVO: Build -> E2E matriz (chromium/firefox) -> E2E Sauce
 ├─ tools/triage_ia.py     # NUEVO: triaje de fallos -> prompt para Claude/MCP
@@ -59,8 +54,10 @@ cd app-tienda
 npm install ; npm start          # http://localhost:3000
 
 # Terminal 2 — pruebas
+cd ..
+cd e2e
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+source .venv/Scripts/activate         .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m playwright install chromium
 pytest

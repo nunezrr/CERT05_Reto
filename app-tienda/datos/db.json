@@ -1,0 +1,197 @@
+{
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Tasty Concrete Chair",
+      "categoria": "hogar",
+      "precio": 106.25,
+      "descripcion": "Rogahn and Sons's most advanced Bacon technology increases frightened capabilities",
+      "stock": 33
+    },
+    {
+      "id": 2,
+      "nombre": "Rustic Steel Tuna",
+      "categoria": "tecnologia",
+      "precio": 363.25,
+      "descripcion": "Our gorilla-friendly Sausages ensures regular comfort for your pets",
+      "stock": 40
+    },
+    {
+      "id": 3,
+      "nombre": "Ergonomic Aluminum Shoes",
+      "categoria": "ropa",
+      "precio": 452.39,
+      "descripcion": "Our creamy-inspired Table brings a taste of luxury to your suburban lifestyle",
+      "stock": 25
+    },
+    {
+      "id": 4,
+      "nombre": "Rustic Bamboo Cheese",
+      "categoria": "juguetes",
+      "precio": 133.09,
+      "descripcion": "The sleek and multicolored Chair comes with violet LED lighting for smart functionality",
+      "stock": 31
+    },
+    {
+      "id": 5,
+      "nombre": "Ergonomic Granite Fish",
+      "categoria": "hogar",
+      "precio": 425.09,
+      "descripcion": "Introducing the Christmas Island-inspired Car, blending steep style with local craftsmanship",
+      "stock": 29
+    },
+    {
+      "id": 6,
+      "nombre": "Unbranded Metal Table",
+      "categoria": "tecnologia",
+      "precio": 250.25,
+      "descripcion": "Our delicious-inspired Shoes brings a taste of luxury to your upbeat lifestyle",
+      "stock": 48
+    },
+    {
+      "id": 7,
+      "nombre": "Licensed Ceramic Sausages",
+      "categoria": "ropa",
+      "precio": 186.89,
+      "descripcion": "New ivory Shirt with ergonomic design for those comfort",
+      "stock": 48
+    },
+    {
+      "id": 8,
+      "nombre": "Electronic Steel Computer",
+      "categoria": "juguetes",
+      "precio": 414.09,
+      "descripcion": "Experience the plum brilliance of our Bike, perfect for milky environments",
+      "stock": 35
+    },
+    {
+      "id": 9,
+      "nombre": "Small Metal Mouse",
+      "categoria": "hogar",
+      "precio": 357.02,
+      "descripcion": "New Bacon model with 96 GB RAM, 653 GB storage, and rewarding features",
+      "stock": 24
+    },
+    {
+      "id": 10,
+      "nombre": "Tasty Granite Ball",
+      "categoria": "tecnologia",
+      "precio": 285.96,
+      "descripcion": "New Chicken model with 10 GB RAM, 486 GB storage, and ample features",
+      "stock": 35
+    },
+    {
+      "id": 11,
+      "nombre": "Recycled Plastic Fish",
+      "categoria": "ropa",
+      "precio": 12.45,
+      "descripcion": "Experience the pink brilliance of our Computer, perfect for definite environments",
+      "stock": 44
+    },
+    {
+      "id": 12,
+      "nombre": "Frozen Marble Gloves",
+      "categoria": "juguetes",
+      "precio": 208.55,
+      "descripcion": "Innovative Ball featuring victorious technology and Silk construction",
+      "stock": 48
+    },
+    {
+      "id": 13,
+      "nombre": "Bespoke Marble Hat",
+      "categoria": "hogar",
+      "precio": 15.79,
+      "descripcion": "Savor the sweet essence in our Shirt, designed for stained culinary adventures",
+      "stock": 45
+    },
+    {
+      "id": 14,
+      "nombre": "Frozen Wooden Soap",
+      "categoria": "tecnologia",
+      "precio": 367,
+      "descripcion": "The Ahmad Chips is the latest in a series of creamy products from Purdy - Ryan",
+      "stock": 40
+    },
+    {
+      "id": 15,
+      "nombre": "Ergonomic Aluminum Shirt",
+      "categoria": "ropa",
+      "precio": 115.79,
+      "descripcion": "Featuring Erbium-enhanced technology, our Soap offers unparalleled ironclad performance",
+      "stock": 42
+    },
+    {
+      "id": 16,
+      "nombre": "Handcrafted Aluminum Mouse",
+      "categoria": "juguetes",
+      "precio": 228.39,
+      "descripcion": "The Networked local moderator Hat offers reliable performance and elegant design",
+      "stock": 37
+    },
+    {
+      "id": 17,
+      "nombre": "Handcrafted Bronze Chicken",
+      "categoria": "hogar",
+      "precio": 128.35,
+      "descripcion": "Innovative Car featuring indelible technology and Plastic construction",
+      "stock": 33
+    },
+    {
+      "id": 18,
+      "nombre": "Generic Ceramic Cheese",
+      "categoria": "tecnologia",
+      "precio": 64.39,
+      "descripcion": "Featuring Cobalt-enhanced technology, our Pants offers unparalleled sparkling performance",
+      "stock": 36
+    },
+    {
+      "id": 19,
+      "nombre": "Generic Cotton Chair",
+      "categoria": "ropa",
+      "precio": 468,
+      "descripcion": "Introducing the Bhutan-inspired Sausages, blending stormy style with local craftsmanship",
+      "stock": 16
+    },
+    {
+      "id": 20,
+      "nombre": "Fresh Granite Fish",
+      "categoria": "juguetes",
+      "precio": 215.35,
+      "descripcion": "The sleek and husky Shoes comes with salmon LED lighting for smart functionality",
+      "stock": 9
+    },
+    {
+      "id": 21,
+      "nombre": "Handmade Silk Shoes",
+      "categoria": "hogar",
+      "precio": 98.85,
+      "descripcion": "Introducing the Saint Vincent and the Grenadines-inspired Tuna, blending concerned style with local craftsmanship",
+      "stock": 40
+    },
+    {
+      "id": 22,
+      "nombre": "Practical Granite Soap",
+      "categoria": "tecnologia",
+      "precio": 377.89,
+      "descripcion": "New Bacon model with 60 GB RAM, 683 GB storage, and impartial features",
+      "stock": 24
+    },
+    {
+      "id": 23,
+      "nombre": "Luxurious Bronze Tuna",
+      "categoria": "ropa",
+      "precio": 256.19,
+      "descripcion": "Innovative Shoes featuring ruddy technology and Concrete construction",
+      "stock": 46
+    },
+    {
+      "id": 24,
+      "nombre": "Generic Steel Towels",
+      "categoria": "juguetes",
+      "precio": 88.65,
+      "descripcion": "Elegant Bike designed with Gold for arid performance",
+      "stock": 9
+    }
+  ],
+  "pedidos": []
+}
