@@ -30,8 +30,8 @@ pool:
 # Variables reutilizables en todo el pipeline
 variables:
   NODE_VERSION: '20.x'
-  APP_DIR: 'prerequisito/app-tienda'      # carpeta de la app
-  TEST_DIR: 'tienda-azure'  # carpeta de las pruebas
+  APP_DIR: 'app-tienda'      # carpeta de la app
+  TEST_DIR: 'e2e'  # carpeta de las pruebas
   BASE_URL: 'http://localhost:3000'
 
 stages:
