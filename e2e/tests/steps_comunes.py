@@ -4,6 +4,7 @@ from pytest_bdd import given, when, then, parsers
 from screenplay.tasks import (
     AbrirElCatalogo,
     FiltrarPorCategoria,
+    BuscarProducto,
     AgregarProductoAlCarrito,
     AbrirElCarrito,
     ConfirmarPedido,
@@ -11,6 +12,7 @@ from screenplay.tasks import (
 from screenplay.questions import (
     ContadorCarrito,
     ProductosVisibles,
+    MensajeSinResultados,
     CategoriasVisibles,
     NumeroDePedido,
     MensajeDeExitoVisible,
@@ -27,6 +29,11 @@ def abrir_home(actor):
 @when(parsers.parse('filtro el catalogo por la categoria "{categoria}"'))
 def filtrar_categoria(actor, categoria):
     actor.intenta(FiltrarPorCategoria.llamada(categoria))
+
+
+@when(parsers.parse('busco el producto "{termino}"'))
+def buscar_producto(actor, termino):
+    actor.intenta(BuscarProducto.con_texto(termino))
 
 
 @when(parsers.parse("agrego el producto {producto_id:d} al carrito"))
@@ -52,6 +59,16 @@ def solo_categoria(actor, categoria):
 @then("la cantidad de productos visibles es mayor que cero")
 def hay_productos(actor):
     assert actor.pregunta(ProductosVisibles.cantidad()) > 0
+
+
+@then("no veo productos en el catalogo")
+def no_hay_productos(actor):
+    assert actor.pregunta(ProductosVisibles.cantidad()) == 0
+
+
+@then(parsers.parse('veo el mensaje "{mensaje_esperado}"'))
+def mensaje_sin_resultados(actor, mensaje_esperado):
+    assert actor.pregunta(MensajeSinResultados.texto()) == mensaje_esperado
 
 
 @then(parsers.parse("el contador del carrito muestra {esperado:d}"))

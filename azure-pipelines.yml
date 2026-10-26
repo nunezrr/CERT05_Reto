@@ -33,6 +33,8 @@ variables:
   APP_DIR: 'app-tienda'      # carpeta de la app
   TEST_DIR: 'e2e'  # carpeta de las pruebas
   BASE_URL: 'http://localhost:3000'
+  TEST_PLAN_ID:  '56'    # ID del Test Plan 
+  TEST_SUITE_ID: '57'    # un suite del plan (el script recorre todos igual)
 
 stages:
   # ──────────────────────────────────────────────────────────
@@ -113,3 +115,75 @@ stages:
           - script: BASE_URL=$(BASE_URL) CONCURRENCIA=15 DURACION_S=8 node tests/carga-simple.js
             displayName: 'Prueba de carga (falla si no cumple el SLA)'
             workingDirectory: '$(TEST_DIR)'
+ 
+   # ──────────────────────────────────────────────────────────
+  - stage: E2E LOCAL: pruebas contra la app en el agente
+    displayName: 'E2E local-first (matriz multinavegador)'
+    dependsOn: Build
+    jobs:
+      - job: e2e_local
+        # MATRIZ: el mismo job corre una vez por cada navegador, en paralelo.
+        strategy:
+          matrix:
+            chromium: { BROWSER: 'chromium' }
+            firefox:  { BROWSER: 'firefox' }
+          maxParallel: 2
+        steps:
+          - task: UseNode@1
+            inputs: { version: '20.x' }
+          - task: UsePythonVersion@0
+            inputs: { versionSpec: '$(PYTHON_VERSION)' }
+          - script: |
+              npm install
+              node datos/generar-datos.js
+              node servidor/server.js &
+            displayName: 'Arrancar app Tienda en background'
+            workingDirectory: 'app-tienda'
+          - script: |
+              pip install -r requirements.txt
+              python -m playwright install --with-deps $(BROWSER)
+              for i in $(seq 1 20); do curl -sf http://localhost:3000/api/health && break || sleep 1; done
+              # -n auto = paralelismo; --browser por matriz; Allure + JUnit
+              pytest -n auto --browser $(BROWSER) \
+                     --alluredir=resultados/allure \
+                     --junitxml=resultados/junit-$(BROWSER).xml
+            displayName: 'E2E en $(BROWSER) (paralelo)'
+          - script: |
+              # IA en el CI: si hubo fallos, arma el prompt de triaje para Claude
+              python tools/triage_ia.py resultados/junit-$(BROWSER).xml || true
+            displayName: 'Triaje de fallos (IA-ready)'
+            condition: always()
+          - task: PublishTestResults@2
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: 'resultados/junit-$(BROWSER).xml'
+              testRunTitle: 'E2E Tienda - $(BROWSER) (Dia 5)'
+          - task: PublishPipelineArtifact@1
+            condition: always()
+            displayName: 'Publicar resultados Allure + triaje'
+            inputs:
+              targetPath: 'resultados'
+              artifact: 'resultados-$(BROWSER)'
+
+          # ── Actualizar los Test Cases del plan (solo una vez, en chromium) ──
+          #  Igual que el Dia 4: usa el test_case_id del junit (tag @TC) para
+          #  marcar cada caso Passed/Failed en Azure Test Plans. Asi, si un cambio
+          #  rompe un test, el Test Plan lo reporta en ROJO automaticamente.
+          #  Requiere: AZURE_DEVOPS_PAT (secreto), TEST_PLAN_ID, TEST_SUITE_ID.
+          - script: |
+              if [ "$BROWSER" != "chromium" ]; then
+                echo "Solo publico al Test Plan desde chromium (evita duplicados)."; exit 0
+              fi
+              if [ -z "$TEST_PLAN_ID" ] || [ -z "$TEST_SUITE_ID" ] || [ -z "$AZURE_DEVOPS_PAT" ]; then
+                echo "Falta TEST_PLAN_ID / TEST_SUITE_ID / AZURE_DEVOPS_PAT: me salto la actualizacion del Test Plan."
+                exit 0
+              fi
+              python tools/publicar_test_plan.py || echo "[AVISO] No se pudo actualizar el Test Plan; el run si tiene los resultados."
+            displayName: 'Actualizar Test Points del Test Plan (desde chromium)'
+            condition: always()
+            env:
+              AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
+              TEST_PLAN_ID: $(TEST_PLAN_ID)
+              TEST_SUITE_ID: $(TEST_SUITE_ID)
+              JUNIT_PATH: 'resultados/junit-chromium.xml'

@@ -33,6 +33,18 @@ class ProductosVisibles:
         return _page(actor).locator('[data-testid="grid-productos"] .card').count()
 
 
+class MensajeSinResultados:
+    """Texto del estado vacio del catalogo, o cadena vacia si esta oculto."""
+
+    @staticmethod
+    def texto() -> "MensajeSinResultados":
+        return MensajeSinResultados()
+
+    def responder_como(self, actor) -> str:
+        mensaje = _page(actor).get_by_test_id("sin-resultados")
+        return mensaje.inner_text() if mensaje.is_visible() else ""
+
+
 class CategoriasVisibles:
     """Lista de categorias (data-categoria) de las tarjetas visibles."""
 

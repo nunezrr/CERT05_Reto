@@ -30,6 +30,18 @@ class FiltrarPorCategoria:
         actor.intenta(Seleccionar.el_valor(self.categoria).en("filtro-categoria"))
 
 
+class BuscarProducto:
+    def __init__(self, termino: str):
+        self.termino = termino
+
+    @staticmethod
+    def con_texto(termino: str) -> "BuscarProducto":
+        return BuscarProducto(termino)
+
+    def ejecutar_como(self, actor):
+        actor.intenta(Escribir.el_texto(self.termino).en("busqueda"))
+
+
 class AgregarProductoAlCarrito:
     def __init__(self, producto_id: int):
         self.producto_id = producto_id

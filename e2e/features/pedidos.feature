@@ -5,8 +5,8 @@ Feature: Confirmar un pedido
   quiero confirmar un pedido con un producto en el carrito
   para completar mi compra
 
-  # @TC21 = ID del Test Case en Azure Test Plans (enlaza el resultado al caso).
-  @pedidos @smoke @TC24
+  # @TC60 = ID del Test Case en Azure Test Plans (enlaza el resultado al caso).
+  @pedidos @smoke @TC60
   Scenario: Confirmar un pedido con un producto
     Given que abro la home de la tienda
     And agrego el producto 1 al carrito
