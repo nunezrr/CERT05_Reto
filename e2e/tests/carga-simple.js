@@ -19,7 +19,7 @@
 const BASE = (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const CONCURRENCIA = Number(process.env.CONCURRENCIA || 10);   // usuarios virtuales
 const DURACION_S   = Number(process.env.DURACION_S || 6);      // segundos
-const SLA_P95_MS   = Number(process.env.SLA_P95_MS || 30);//800);
+const SLA_P95_MS   = Number(process.env.SLA_P95_MS || 5);//800);
 const SLA_ERROR_PCT= Number(process.env.SLA_ERROR_PCT || 1);
 const RUTA         = process.env.RUTA || '/api/productos';
 
