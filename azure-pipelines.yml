@@ -1,0 +1,115 @@
+# ============================================================
+# azure-pipelines.yml — Pipeline de Azure DevOps para la app Tienda
+# ------------------------------------------------------------
+# Es el equivalente en Azure del buildspec.yml de AWS.
+# Mismo concepto: un archivo YAML versionado junto al codigo que
+# describe las etapas del CI/CD. Cambia la sintaxis y la consola,
+# no la idea.
+#
+# Este pipeline:
+#   1) BUILD   : instala Node y dependencias, genera datos con Faker
+#   2) SMOKE   : arranca la app y corre el smoke test de la API
+#   3) CARGA   : corre la prueba de carga y valida el SLA (quality gate)
+#
+# Para usarlo en Azure DevOps:
+#   - Sube este repo a Azure Repos o GitHub.
+#   - En Azure DevOps: Pipelines > New pipeline > elige tu repo >
+#     "Existing Azure Pipelines YAML file" > /azure-pipelines.yml.
+# ============================================================
+
+# Se ejecuta en cada push a la rama main
+trigger:
+  branches:
+    include:
+      - main
+
+# Agente hospedado por Azure (maquina Linux con herramientas preinstaladas)
+pool:
+  vmImage: 'ubuntu-latest'
+
+# Variables reutilizables en todo el pipeline
+variables:
+  NODE_VERSION: '20.x'
+  APP_DIR: 'prerequisito/app-tienda'      # carpeta de la app
+  TEST_DIR: 'tienda-azure'  # carpeta de las pruebas
+  BASE_URL: 'http://localhost:3000'
+
+stages:
+  # ──────────────────────────────────────────────────────────
+  - stage: Build
+    displayName: 'Build — instalar y generar datos'
+    jobs:
+      - job: build
+        displayName: 'Preparar la app'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Usar Node $(NODE_VERSION)'
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+
+          - script: npm install
+            displayName: 'npm install (genera datos con Faker en postinstall)'
+            workingDirectory: '$(APP_DIR)'
+
+  # ──────────────────────────────────────────────────────────
+  - stage: SmokeTests
+    displayName: 'Smoke — la app responde tras desplegar'
+    dependsOn: Build
+    jobs:
+      - job: smoke
+        displayName: 'Arrancar app y correr smoke test'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+
+          - script: npm install
+            displayName: 'Instalar dependencias de la app'
+            workingDirectory: '$(APP_DIR)'
+
+          # Arranca la app en segundo plano (& la deja corriendo)
+          - script: |
+              node servidor/server.js &
+              echo "Esperando a que la app responda..."
+              for i in $(seq 1 15); do
+                if curl -sf http://localhost:3000/api/health > /dev/null; then
+                  echo "App lista"; break
+                fi
+                sleep 2
+              done
+            displayName: 'Arrancar la app en background'
+            workingDirectory: '$(APP_DIR)'
+
+          - script: BASE_URL=$(BASE_URL) node tests/smoke-api.js
+            displayName: 'Smoke test de la API'
+            workingDirectory: '$(TEST_DIR)'
+
+  # ──────────────────────────────────────────────────────────
+  - stage: LoadTest
+    displayName: 'Carga — quality gate de rendimiento'
+    dependsOn: SmokeTests
+    jobs:
+      - job: carga
+        displayName: 'Prueba de carga + SLA'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+
+          - script: npm install
+            workingDirectory: '$(APP_DIR)'
+
+          - script: |
+              node servidor/server.js &
+              for i in $(seq 1 15); do
+                if curl -sf http://localhost:3000/api/health > /dev/null; then break; fi
+                sleep 2
+              done
+            displayName: 'Arrancar la app en background'
+            workingDirectory: '$(APP_DIR)'
+
+          # Si el SLA no se cumple, este script sale con codigo 1
+          # y el pipeline marca la etapa en rojo (quality gate).
+          - script: BASE_URL=$(BASE_URL) CONCURRENCIA=15 DURACION_S=8 node tests/carga-simple.js
+            displayName: 'Prueba de carga (falla si no cumple el SLA)'
+            workingDirectory: '$(TEST_DIR)'

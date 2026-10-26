@@ -1,0 +1,32 @@
+{
+  "name": "servicio-tienda",
+  "version": "1.0.0",
+  "description": "Servicio de tienda para ejercicios Dia 2 - Automatizacion en AWS (CodeBuild / CodePipeline / Inspector)",
+  "type": "module",
+  "scripts": {
+    "generar": "node datos/generar-datos.js",
+    "seed": "node 4-pipeline/restaurar-seed.js",
+    "api": "json-server 2-servicio/db.json --port 3001",
+    "test": "node 3-tests/runner.js",
+    "test:productos": "node 3-tests/test-productos.js",
+    "test:pedidos": "node 3-tests/test-pedidos.js",
+    "test:contrato": "node 3-tests/test-contrato.js",
+    "inspector": "node 5-inspector/analizar-reporte.js",
+    "pipeline": "node 4-pipeline/runner-local.js"
+  },
+  "keywords": [
+    "qa",
+    "aws",
+    "codebuild",
+    "testing",
+    "cloud-native"
+  ],
+  "author": "Lite Thinking University of Technology",
+  "license": "MIT",
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0"
+  },
+  "devDependencies": {
+    "json-server": "0.17.4"
+  }
+}

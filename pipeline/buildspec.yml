@@ -1,0 +1,86 @@
+version: 0.2
+
+# ============================================================
+# buildspec.yml - AWS CodeBuild
+# ------------------------------------------------------------
+# Guion que CodeBuild sigue para ejecutar el pipeline CI/CD.
+# Cuatro fases: install -> pre_build -> build -> post_build.
+# El runner-local.js ejecuta las mismas fases en tu maquina.
+#
+# IMPORTANTE: en YAML, los comandos con comillas dobles o
+# caracteres especiales van entre comillas simples para que
+# el parser no se confunda.
+# ============================================================
+
+env:
+  variables:
+    NODE_ENV: "test"
+    API_PORT: "3001"
+    SLA_MS: "800"
+    # Security gate (Inspector). "off" = informativo (no rompe el build);
+    # "on" = bloqueante (si el score supera el umbral, BUILD FAILED).
+    SECURITY_GATE: "off"
+
+phases:
+
+  # FASE 1: INSTALL - instala dependencias
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - 'echo "=== FASE INSTALL ==="'
+      - 'node --version'
+      - 'npm install'
+      - 'echo "Dependencias instaladas OK"'
+
+  # FASE 2: PRE_BUILD - genera los datos (NO estan versionados)
+  #   1) Faker genera datos/db.seed.json
+  #   2) restaurar-seed copia el seed a datos/db.json
+  # La API la levanta el propio runner de tests en la fase BUILD,
+  # asi no dependemos de un proceso en background entre fases.
+  pre_build:
+    commands:
+      - 'echo "=== FASE PRE_BUILD ==="'
+      - 'echo "Generando datos con Faker..."'
+      - 'node datos/generar-datos.js'
+      - 'echo "Preparando la copia de trabajo (seed -> db.json)..."'
+      - 'node pipeline/restaurar-seed.js'
+      - 'echo "Pre-build OK"'
+
+  # FASE 3: BUILD - el runner levanta la API, corre los tests y la apaga.
+  # Si algun test falla, npm test sale con 1 y CodeBuild marca BUILD FAILED.
+  build:
+    commands:
+      - 'echo "=== FASE BUILD: corriendo tests ==="'
+      - 'npm test'
+      - 'echo "Tests completados"'
+
+  # FASE 4: POST_BUILD - muestra el reporte (siempre corre)
+  post_build:
+    commands:
+      - 'echo "=========================================="'
+      - 'echo "===== FASE POST_BUILD: REPORTE DE TESTS ====="'
+      - 'echo "=========================================="'
+      - 'ls -la pipeline/'
+      - 'echo "----- Contenido de test-report.json -----"'
+      - 'if [ -f pipeline/test-report.json ]; then cat pipeline/test-report.json; else echo "AVISO: no se genero el reporte"; fi'
+      - 'echo ""'
+      - 'echo "----- Fin del reporte -----"'
+      # SECURITY GATE (AWS Inspector): mismo analisis que el Ejercicio 4,
+      # ejecutado como compuerta del pipeline. En modo "off" solo informa;
+      # en modo "on" un score sobre el umbral marca BUILD FAILED (exit 1).
+      - 'echo "===== SECURITY GATE: analisis de Inspector ====="'
+      - 'if [ "$SECURITY_GATE" = "on" ]; then node inspector/analizar-reporte.js; else node inspector/analizar-reporte.js || echo "Gate INFORMATIVO: score sobre umbral, no bloquea (SECURITY_GATE=off)"; fi'
+
+# ARTEFACTOS: se suben a S3 en AWS; en local quedan en 4-pipeline/
+artifacts:
+  files:
+    - 'pipeline/test-report.json'
+    - 'inspector/resumen-analisis.json'
+  discard-paths: yes
+
+# NOTA sobre CodeBuild Test Reports:
+# Para ver graficos en la consola de AWS, el reporte debe estar en
+# formato estandar (JUNITXML, CUCUMBERJSON). Nuestro test-report.json
+# es JSON propio, por eso NO declaramos la seccion "reports:"
+# (declararla con un formato que no coincide hace fallar el build).
