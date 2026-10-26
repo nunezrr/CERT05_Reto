@@ -42,10 +42,10 @@ stages:
       - job: build
         displayName: 'Preparar la app'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             displayName: 'Usar Node $(NODE_VERSION)'
             inputs:
-              versionSpec: '$(NODE_VERSION)'
+              version: '$(NODE_VERSION)'
 
           - script: npm install
             displayName: 'npm install (genera datos con Faker en postinstall)'
@@ -59,9 +59,9 @@ stages:
       - job: smoke
         displayName: 'Arrancar app y correr smoke test'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '$(NODE_VERSION)'
+              version: '$(NODE_VERSION)'
 
           - script: npm install
             displayName: 'Instalar dependencias de la app'
@@ -92,9 +92,9 @@ stages:
       - job: carga
         displayName: 'Prueba de carga + SLA'
         steps:
-          - task: NodeTool@0
+          - task: UseNode@1
             inputs:
-              versionSpec: '$(NODE_VERSION)'
+              version: '$(NODE_VERSION)'
 
           - script: npm install
             workingDirectory: '$(APP_DIR)'
