@@ -25,7 +25,7 @@ trigger:
 
 # Agente hospedado por Azure (maquina Linux con herramientas preinstaladas)
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Default' # O el nombre del pool de tu agente privado
 
 # Variables reutilizables en todo el pipeline
 variables:
