@@ -30,6 +30,7 @@ pool:
 # Variables reutilizables en todo el pipeline
 variables:
   NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.11'
   APP_DIR: 'app-tienda'      # carpeta de la app
   TEST_DIR: 'e2e'  # carpeta de las pruebas
   BASE_URL: 'http://localhost:3000'
@@ -117,7 +118,7 @@ stages:
             workingDirectory: '$(TEST_DIR)'
  
    # ──────────────────────────────────────────────────────────
-  - stage: E2E LOCAL: pruebas contra la app en el agente
+  - stage: E2E_Local
     displayName: 'E2E local-first (matriz multinavegador)'
     dependsOn: Build
     jobs:
