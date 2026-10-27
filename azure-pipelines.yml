@@ -144,11 +144,16 @@ stages:
             workingDirectory: 'app-tienda'
           - script: |
               set -e
-              python$(PYTHON_VERSION) -m pip install -r requirements.txt
-              python$(PYTHON_VERSION) -m playwright install --with-deps $(BROWSER)
+              unset PYTHONPATH PYTHONHOME PYTEST_PLUGINS PYTEST_ADDOPTS
+              VENV_DIR="$(Agent.TempDirectory)/e2e-$(BROWSER)-$(Build.BuildId)"
+              python$(PYTHON_VERSION) -m venv --clear "$VENV_DIR"
+              source "$VENV_DIR/bin/activate"
+              python -m pip --isolated install -r requirements.txt
+              python -m pip check
+              python -m playwright install --with-deps $(BROWSER)
               for i in $(seq 1 20); do curl -sf http://localhost:3000/api/health && break || sleep 1; done
               # -n auto = paralelismo; --browser por matriz; Allure + JUnit
-              python$(PYTHON_VERSION) -m pytest -n auto --browser $(BROWSER) \
+              python -m pytest -n auto --browser $(BROWSER) \
                      --alluredir=resultados/allure \
                      --junitxml=resultados/junit-$(BROWSER).xml
             displayName: 'E2E en $(BROWSER) (paralelo)'
