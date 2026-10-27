@@ -6,7 +6,7 @@
   "main": "servidor/server.js",
   "scripts": {
     "start": "node servidor/server.js",
-    "postinstall": "node datos/generar-datos.js"
+    "postinstall": "npm --prefix .. install --omit=dev --ignore-scripts && npm --prefix .. run generar"
   },
   "dependencies": {
     "@faker-js/faker": "^10.6.0",

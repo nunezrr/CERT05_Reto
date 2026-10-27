@@ -137,8 +137,8 @@ stages:
               python$(PYTHON_VERSION) -m pip --version
             displayName: 'Verificar Python $(PYTHON_VERSION) local'
           - script: |
+              set -e
               npm install
-              node datos/generar-datos.js
               node servidor/server.js &
             displayName: 'Arrancar app Tienda en background'
             workingDirectory: 'app-tienda'

@@ -16,10 +16,10 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(__dirname, '..');
-const DB_PATH = join(RAIZ, 'datos', 'db.json');
+const DB_PATH = join(RAIZ, '..', 'datos', 'db.json');
 
 if (!existsSync(DB_PATH)) {
-  console.error('No existe datos/db.json. Ejecuta: npm install (corre postinstall) o node datos/generar-datos.js');
+  console.error('No existe datos/db.json en la raiz del repositorio. Ejecuta npm install desde app-tienda.');
   process.exit(1);
 }
 
