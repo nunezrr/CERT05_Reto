@@ -28,7 +28,7 @@ trigger:
       - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Default'
 
 variables:
   NODE_VERSION: '20.x'
@@ -49,13 +49,14 @@ stages:
           # 1) Traer el repo (uno solo)
           - checkout: self
 
-          # 2) Preparar Node y Python
+          # 2) Preparar Node y verificar Python instalado en el agente
           - task: UseNode@1
             displayName: 'Usar Node $(NODE_VERSION)'
             inputs: { version: '$(NODE_VERSION)' }
-          - task: UsePythonVersion@0
-            displayName: 'Usar Python $(PYTHON_VERSION)'
-            inputs: { versionSpec: '$(PYTHON_VERSION)' }
+          - script: |
+              python$(PYTHON_VERSION) --version
+              python$(PYTHON_VERSION) -m pip --version
+            displayName: 'Verificar Python $(PYTHON_VERSION) local'
 
           # 3) BUILD: instalar la app y generar datos con Faker (postinstall)
           - script: npm install
@@ -87,9 +88,9 @@ stages:
 
           # 7) AUTOMATIZACION E2E: pytest-bdd contra la misma app viva
           - script: |
-              pip install -r requirements.txt
-              python -m playwright install --with-deps chromium
-              pytest --junitxml=resultados/junit.xml
+              python$(PYTHON_VERSION) -m pip install -r requirements.txt
+              python$(PYTHON_VERSION) -m playwright install --with-deps chromium
+              python$(PYTHON_VERSION) -m pytest --junitxml=resultados/junit.xml
             displayName: 'Automatizacion E2E (pytest-bdd)'
             workingDirectory: '$(E2E_DIR)'
             env:

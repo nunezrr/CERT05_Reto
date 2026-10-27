@@ -120,7 +120,7 @@ stages:
    # ──────────────────────────────────────────────────────────
   - stage: E2E_Local
     displayName: 'E2E local-first (matriz multinavegador)'
-    dependsOn: Build
+    dependsOn: LoadTest
     jobs:
       - job: e2e_local
         # MATRIZ: el mismo job corre una vez por cada navegador, en paralelo.
@@ -132,8 +132,10 @@ stages:
         steps:
           - task: UseNode@1
             inputs: { version: '20.x' }
-          - task: UsePythonVersion@0
-            inputs: { versionSpec: '$(PYTHON_VERSION)' }
+          - script: |
+              python$(PYTHON_VERSION) --version
+              python$(PYTHON_VERSION) -m pip --version
+            displayName: 'Verificar Python $(PYTHON_VERSION) local'
           - script: |
               npm install
               node datos/generar-datos.js
@@ -141,30 +143,35 @@ stages:
             displayName: 'Arrancar app Tienda en background'
             workingDirectory: 'app-tienda'
           - script: |
-              pip install -r requirements.txt
-              python -m playwright install --with-deps $(BROWSER)
+              set -e
+              python$(PYTHON_VERSION) -m pip install -r requirements.txt
+              python$(PYTHON_VERSION) -m playwright install --with-deps $(BROWSER)
               for i in $(seq 1 20); do curl -sf http://localhost:3000/api/health && break || sleep 1; done
               # -n auto = paralelismo; --browser por matriz; Allure + JUnit
-              pytest -n auto --browser $(BROWSER) \
+              python$(PYTHON_VERSION) -m pytest -n auto --browser $(BROWSER) \
                      --alluredir=resultados/allure \
                      --junitxml=resultados/junit-$(BROWSER).xml
             displayName: 'E2E en $(BROWSER) (paralelo)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
           - script: |
+              mkdir -p resultados
               # IA en el CI: si hubo fallos, arma el prompt de triaje para Claude
-              python tools/triage_ia.py resultados/junit-$(BROWSER).xml || true
+              python$(PYTHON_VERSION) tools/triage_ia.py resultados/junit-$(BROWSER).xml || true
             displayName: 'Triaje de fallos (IA-ready)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
             condition: always()
           - task: PublishTestResults@2
             condition: always()
             inputs:
               testResultsFormat: 'JUnit'
+              searchFolder: '$(Build.SourcesDirectory)/$(TEST_DIR)'
               testResultsFiles: 'resultados/junit-$(BROWSER).xml'
               testRunTitle: 'E2E Tienda - $(BROWSER) (Dia 5)'
           - task: PublishPipelineArtifact@1
             condition: always()
             displayName: 'Publicar resultados Allure + triaje'
             inputs:
-              targetPath: 'resultados'
+              targetPath: '$(Build.SourcesDirectory)/$(TEST_DIR)/resultados'
               artifact: 'resultados-$(BROWSER)'
 
           # ── Actualizar los Test Cases del plan (solo una vez, en chromium) ──
@@ -180,8 +187,9 @@ stages:
                 echo "Falta TEST_PLAN_ID / TEST_SUITE_ID / AZURE_DEVOPS_PAT: me salto la actualizacion del Test Plan."
                 exit 0
               fi
-              python tools/publicar_test_plan.py || echo "[AVISO] No se pudo actualizar el Test Plan; el run si tiene los resultados."
+              python$(PYTHON_VERSION) tools/publicar_test_plan.py || echo "[AVISO] No se pudo actualizar el Test Plan; el run si tiene los resultados."
             displayName: 'Actualizar Test Points del Test Plan (desde chromium)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
             condition: always()
             env:
               AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
