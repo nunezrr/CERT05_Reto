@@ -1,20 +1,17 @@
 # ============================================================
 # azure-pipelines.yml — Pipeline de Azure DevOps para la app Tienda
 # ------------------------------------------------------------
-# Es el equivalente en Azure del buildspec.yml de AWS.
-# Mismo concepto: un archivo YAML versionado junto al codigo que
-# describe las etapas del CI/CD. Cambia la sintaxis y la consola,
-# no la idea.
 #
 # Este pipeline:
 #   1) BUILD   : instala Node y dependencias, genera datos con Faker
 #   2) SMOKE   : arranca la app y corre el smoke test de la API
 #   3) CARGA   : corre la prueba de carga y valida el SLA (quality gate)
+#   4) E2E_LOCAL: corre las pruebas end-to-end en el entorno local
+#   5) E2E_SAUCE: corre las pruebas end-to-end en Sauce Labs
 #
 # Para usarlo en Azure DevOps:
-#   - Sube este repo a Azure Repos o GitHub.
-#   - En Azure DevOps: Pipelines > New pipeline > elige tu repo >
-#     "Existing Azure Pipelines YAML file" > /azure-pipelines.yml.
+#   - Sube este repo a GitHub.
+#   - En Azure DevOps: Pipelines > "Existing Azure Pipelines YAML file" > /azure-pipelines.yml.
 # ============================================================
 
 # Se ejecuta en cada push a la rama main
@@ -118,93 +115,93 @@ stages:
             workingDirectory: '$(TEST_DIR)'
  
    # ──────────────────────────────────────────────────────────
-  # - stage: E2E_Local
-  #   displayName: 'E2E local-first (matriz multinavegador)'
-  #   dependsOn: LoadTest
-  #   jobs:
-  #    - job: e2e_local
-  #      # MATRIZ: el mismo job corre una vez por cada navegador, en paralelo.
-  #      strategy:
-  #        matrix:
-  #          chromium: { BROWSER: 'chromium' }
-  #          firefox:  { BROWSER: 'firefox' }
-  #        maxParallel: 2
-  #      steps:
-  #        - task: UseNode@1
-  #          inputs: { version: '20.x' }
-  #        - script: |
-  #            python$(PYTHON_VERSION) --version
-  #            python$(PYTHON_VERSION) -m pip --version
-  #          displayName: 'Verificar Python $(PYTHON_VERSION) local'
-  #        - script: |
-  #            set -e
-  #            npm install
-  #            node servidor/server.js &
-  #          displayName: 'Arrancar app Tienda en background'
-  #          workingDirectory: 'app-tienda'
-  #        - script: |
-  #            set -e
-  #            unset PYTHONPATH PYTHONHOME PYTEST_PLUGINS PYTEST_ADDOPTS
-  #            VENV_DIR="$(Agent.TempDirectory)/e2e-$(BROWSER)-$(Build.BuildId)"
-  #            python$(PYTHON_VERSION) -m venv --clear "$VENV_DIR"
-  #            source "$VENV_DIR/bin/activate"
-  #            python -m pip --isolated install -r requirements.txt
-  #            python -m pip check
-  #            python -m playwright install --with-deps $(BROWSER)
-  #            for i in $(seq 1 20); do curl -sf http://localhost:3000/api/health && break || sleep 1; done
-  #            # -n auto = paralelismo; --browser por matriz; Allure + JUnit
-  #            python -m pytest -n auto --browser $(BROWSER) \
-  #                   --alluredir=resultados/allure \
-  #                   --junitxml=resultados/junit-$(BROWSER).xml
-  #          displayName: 'E2E en $(BROWSER) (paralelo)'
-  #          workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
-  #        - script: |
-  #            mkdir -p resultados
-  #            # IA en el CI: si hubo fallos, arma el prompt de triaje para Claude
-  #            python$(PYTHON_VERSION) tools/triage_ia.py resultados/junit-$(BROWSER).xml || true
-  #          displayName: 'Triaje de fallos (IA-ready)'
-  #          workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
-  #          condition: always()
-  #        - task: PublishTestResults@2
-  #          condition: always()
-  #          inputs:
-  #            testResultsFormat: 'JUnit'
-  #            searchFolder: '$(Build.SourcesDirectory)/$(TEST_DIR)'
-  #            testResultsFiles: 'resultados/junit-$(BROWSER).xml'
-  #            testRunTitle: 'E2E Tienda - $(BROWSER) (Dia 5)'
-  #       - task: PublishPipelineArtifact@1
-  #          condition: always()
-  #          displayName: 'Publicar resultados Allure + triaje'
-  #          inputs:
-  #            targetPath: '$(Build.SourcesDirectory)/$(TEST_DIR)/resultados'
-  #            artifact: 'resultados-$(BROWSER)'
+   - stage: E2E_Local
+     displayName: 'E2E local-first (matriz multinavegador)'
+     dependsOn: LoadTest
+     jobs:
+      - job: e2e_local
+        # MATRIZ: el mismo job corre una vez por cada navegador, en paralelo.
+        strategy:
+          matrix:
+            chromium: { BROWSER: 'chromium' }
+            firefox:  { BROWSER: 'firefox' }
+          maxParallel: 2
+        steps:
+          - task: UseNode@1
+            inputs: { version: '20.x' }
+          - script: |
+              python$(PYTHON_VERSION) --version
+              python$(PYTHON_VERSION) -m pip --version
+            displayName: 'Verificar Python $(PYTHON_VERSION) local'
+          - script: |
+              set -e
+              npm install
+              node servidor/server.js &
+            displayName: 'Arrancar app Tienda en background'
+            workingDirectory: 'app-tienda'
+          - script: |
+              set -e
+              unset PYTHONPATH PYTHONHOME PYTEST_PLUGINS PYTEST_ADDOPTS
+              VENV_DIR="$(Agent.TempDirectory)/e2e-$(BROWSER)-$(Build.BuildId)"
+              python$(PYTHON_VERSION) -m venv --clear "$VENV_DIR"
+              source "$VENV_DIR/bin/activate"
+              python -m pip --isolated install -r requirements.txt
+              python -m pip check
+              python -m playwright install --with-deps $(BROWSER)
+              for i in $(seq 1 20); do curl -sf http://localhost:3000/api/health && break || sleep 1; done
+              # -n auto = paralelismo; --browser por matriz; Allure + JUnit
+              python -m pytest -n auto --browser $(BROWSER) \
+                     --alluredir=resultados/allure \
+                     --junitxml=resultados/junit-$(BROWSER).xml
+            displayName: 'E2E en $(BROWSER) (paralelo)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
+          - script: |
+              mkdir -p resultados
+              # IA en el CI: si hubo fallos, arma el prompt de triaje para Claude
+              python$(PYTHON_VERSION) tools/triage_ia.py resultados/junit-$(BROWSER).xml || true
+            displayName: 'Triaje de fallos (IA-ready)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
+            condition: always()
+          - task: PublishTestResults@2
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              searchFolder: '$(Build.SourcesDirectory)/$(TEST_DIR)'
+              testResultsFiles: 'resultados/junit-$(BROWSER).xml'
+              testRunTitle: 'E2E Tienda - $(BROWSER) (Dia 5)'
+         - task: PublishPipelineArtifact@1
+            condition: always()
+            displayName: 'Publicar resultados Allure + triaje'
+            inputs:
+              targetPath: '$(Build.SourcesDirectory)/$(TEST_DIR)/resultados'
+              artifact: 'resultados-$(BROWSER)'
 
           # ── Actualizar los Test Cases del plan (solo una vez, en chromium) ──
-          #  Igual que el Dia 4: usa el test_case_id del junit (tag @TC) para
+          #  Usa el test_case_id del junit (tag @TC) para
           #  marcar cada caso Passed/Failed en Azure Test Plans. Asi, si un cambio
           #  rompe un test, el Test Plan lo reporta en ROJO automaticamente.
           #  Requiere: AZURE_DEVOPS_PAT (secreto), TEST_PLAN_ID, TEST_SUITE_ID.
-#          - script: |
-#              if [ "$BROWSER" != "chromium" ]; then
-#                echo "Solo publico al Test Plan desde chromium (evita duplicados)."; exit 0
-#              fi
-#              if [ -z "$TEST_PLAN_ID" ] || [ -z "$TEST_SUITE_ID" ] || [ -z "$AZURE_DEVOPS_PAT" ]; then
-#                echo "Falta TEST_PLAN_ID / TEST_SUITE_ID / AZURE_DEVOPS_PAT: me salto la actualizacion del Test Plan."
-#                exit 0
-#              fi
-#              python$(PYTHON_VERSION) tools/publicar_test_plan.py || echo "[AVISO] No se pudo actualizar el Test Plan; el run si tiene los resultados."
-#            displayName: 'Actualizar Test Points del Test Plan (desde chromium)'
-#            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
-#            condition: always()
-#            env:
-#              AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
-#              TEST_PLAN_ID: $(TEST_PLAN_ID)
-#              TEST_SUITE_ID: $(TEST_SUITE_ID)
-#              JUNIT_PATH: 'resultados/junit-chromium.xml'
+          - script: |
+              if [ "$BROWSER" != "chromium" ]; then
+                echo "Solo publico al Test Plan desde chromium (evita duplicados)."; exit 0
+              fi
+              if [ -z "$TEST_PLAN_ID" ] || [ -z "$TEST_SUITE_ID" ] || [ -z "$AZURE_DEVOPS_PAT" ]; then
+                echo "Falta TEST_PLAN_ID / TEST_SUITE_ID / AZURE_DEVOPS_PAT: me salto la actualizacion del Test Plan."
+                exit 0
+              fi
+              python$(PYTHON_VERSION) tools/publicar_test_plan.py || echo "[AVISO] No se pudo actualizar el Test Plan; el run si tiene los resultados."
+            displayName: 'Actualizar Test Points del Test Plan (desde chromium)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
+            condition: always()
+            env:
+              AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
+              TEST_PLAN_ID: $(TEST_PLAN_ID)
+              TEST_SUITE_ID: $(TEST_SUITE_ID)
+              JUNIT_PATH: 'resultados/junit-chromium.xml'
 
-  - stage: E2E_Sauce
+   - stage: E2E_Sauce
     displayName: 'E2E en Sauce Labs (navegador real, via tunel)'
-    dependsOn: LoadTest
+    dependsOn: E2E_Local
     condition: ne(variables['SAUCE_USERNAME'], '')
     jobs:
       - job: e2e_sauce
