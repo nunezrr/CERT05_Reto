@@ -208,8 +208,6 @@ stages:
     condition: ne(variables['SAUCE_USERNAME'], '')
     jobs:
       - job: e2e_sauce
-        pool:
-          vmImage: 'Default'
         timeoutInMinutes: 30
         steps:
           - script: mkdir -p "$(Build.SourcesDirectory)/$(TEST_DIR)/resultados"
@@ -217,8 +215,12 @@ stages:
 
           - task: NodeTool@0
             inputs: { versionSpec: '$(NODE_VERSION)' }
-          - task: UsePythonVersion@0
-            inputs: { versionSpec: '$(PYTHON_VERSION)' }
+          - script: |
+              set -e
+              python3.11 --version
+              python3.11 -m venv "$(Agent.TempDirectory)/e2e-sauce-venv"
+              "$(Agent.TempDirectory)/e2e-sauce-venv/bin/python" -m pip --version
+            displayName: 'Preparar entorno Python del agente privado'
 
           # ── PASO 1: arrancar la app Y abrir el tunel (ambos en background) ──
           #  Clave para el error "STDIO streams did not close": redirigimos la
@@ -311,15 +313,16 @@ stages:
           - script: |
               set -e
               cd "$(Build.SourcesDirectory)/$(TEST_DIR)"
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-              python -m playwright install chromium
+              PYTHON="$(Agent.TempDirectory)/e2e-sauce-venv/bin/python"
+              "$PYTHON" -m pip install --upgrade pip
+              "$PYTHON" -m pip install -r requirements.txt
+              "$PYTHON" -m playwright install chromium
               # --headed: Sauce EXIGE modo headed para que el navegador remoto
               # grabe video. El conftest tambien lo fuerza, pero lo dejamos
               # explicito. El conftest exporta SELENIUM_REMOTE_URL/CAPABILITIES
               # (Selenium Grid de Sauce) al detectar SAUCE=1, asi que este mismo
               # 'pytest' corre contra el Chrome REAL de Sauce.
-              pytest --headed --junitxml=resultados/junit-sauce.xml
+              "$PYTHON" -m pytest --headed --junitxml=resultados/junit-sauce.xml
             displayName: 'Correr E2E en Sauce Labs (navegador real)'
             env:
               SAUCE: '1'
@@ -364,7 +367,7 @@ stages:
                 echo "[AVISO] Faltan TEST_PLAN_ID/TEST_SUITE_ID/AZURE_DEVOPS_PAT. Me salto el Test Plan."
                 exit 0
               fi
-              python tools/publicar_test_plan.py || echo "[AVISO] no se pudo actualizar el Test Plan"
+              "$(Agent.TempDirectory)/e2e-sauce-venv/bin/python" tools/publicar_test_plan.py || echo "[AVISO] no se pudo actualizar el Test Plan"
             displayName: 'Actualizar Test Points del Test Plan (Sauce)'
             condition: always()
             workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
