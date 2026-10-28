@@ -115,10 +115,10 @@ stages:
             workingDirectory: '$(TEST_DIR)'
  
    # ──────────────────────────────────────────────────────────
-   - stage: E2E_Local
-     displayName: 'E2E local-first (matriz multinavegador)'
-     dependsOn: LoadTest
-     jobs:
+  - stage: E2E_Local
+    displayName: 'E2E local-first (matriz multinavegador)'
+    dependsOn: LoadTest
+    jobs:
       - job: e2e_local
         # MATRIZ: el mismo job corre una vez por cada navegador, en paralelo.
         strategy:
@@ -169,7 +169,7 @@ stages:
               searchFolder: '$(Build.SourcesDirectory)/$(TEST_DIR)'
               testResultsFiles: 'resultados/junit-$(BROWSER).xml'
               testRunTitle: 'E2E Tienda - $(BROWSER) (Dia 5)'
-         - task: PublishPipelineArtifact@1
+          - task: PublishPipelineArtifact@1
             condition: always()
             displayName: 'Publicar resultados Allure + triaje'
             inputs:
@@ -199,7 +199,7 @@ stages:
               TEST_SUITE_ID: $(TEST_SUITE_ID)
               JUNIT_PATH: 'resultados/junit-chromium.xml'
 
-   - stage: E2E_Sauce
+  - stage: E2E_Sauce
     displayName: 'E2E en Sauce Labs (navegador real, via tunel)'
     dependsOn: E2E_Local
     condition: ne(variables['SAUCE_USERNAME'], '')
