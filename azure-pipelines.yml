@@ -204,13 +204,15 @@ stages:
 
   - stage: E2E_Sauce
     displayName: 'E2E en Sauce Labs (navegador real, via tunel)'
-    dependsOn: []            # corre en paralelo con E2E_Local (no espera)
+    dependsOn: LoadTest
     condition: ne(variables['SAUCE_USERNAME'], '')
     jobs:
       - job: e2e_sauce
+        pool:
+          vmImage: 'ubuntu-24.04'
         timeoutInMinutes: 30
         steps:
-          - script: mkdir -p "$(Build.SourcesDirectory)/$(E2E_DIR)/resultados"
+          - script: mkdir -p "$(Build.SourcesDirectory)/$(TEST_DIR)/resultados"
             displayName: 'Preparar directorio de resultados'
 
           - task: NodeTool@0
@@ -238,7 +240,7 @@ stages:
               if [ "$APP_OK" != "1" ]; then echo ">>> APP NO ARRANCO. app.log:"; cat "$(Build.SourcesDirectory)/app.log"; fi
 
               echo "########## FASE 2: DESCARGAR SAUCE CONNECT ##########"
-              cd "$(Build.SourcesDirectory)/$(E2E_DIR)"
+              cd "$(Build.SourcesDirectory)/$(TEST_DIR)"
               curl -fsSL -o sc.tar.gz https://saucelabs.com/downloads/sauce-connect/5.2.2/sauce-connect-5.2.2_linux.x86_64.tar.gz
               echo ">>> Descarga: $? (0=ok)"
               mkdir -p sc && tar -xzf sc.tar.gz -C sc
@@ -308,7 +310,7 @@ stages:
           # ── PASO 2: correr pytest en Sauce (app y tunel siguen vivos) ──
           - script: |
               set -e
-              cd "$(Build.SourcesDirectory)/$(E2E_DIR)"
+              cd "$(Build.SourcesDirectory)/$(TEST_DIR)"
               python -m pip install --upgrade pip
               pip install -r requirements.txt
               python -m playwright install chromium
@@ -346,13 +348,13 @@ stages:
             condition: always()
             inputs:
               testResultsFormat: 'JUnit'
-              testResultsFiles: '$(E2E_DIR)/resultados/junit-sauce.xml'
+              testResultsFiles: '$(TEST_DIR)/resultados/junit-sauce.xml'
               testRunTitle: 'E2E Tienda - Sauce Labs (Dia 5)'
           - task: PublishPipelineArtifact@1
             condition: always()
             displayName: 'Publicar resultados Sauce + logs'
             inputs:
-              targetPath: '$(E2E_DIR)/resultados'
+              targetPath: '$(Build.SourcesDirectory)/$(TEST_DIR)/resultados'
               artifact: 'resultados-sauce'
 
           # Actualizar el Test Plan tambien con el resultado de Sauce.
@@ -365,7 +367,7 @@ stages:
               python tools/publicar_test_plan.py || echo "[AVISO] no se pudo actualizar el Test Plan"
             displayName: 'Actualizar Test Points del Test Plan (Sauce)'
             condition: always()
-            workingDirectory: '$(E2E_DIR)'
+            workingDirectory: '$(Build.SourcesDirectory)/$(TEST_DIR)'
             env:
               AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
               TEST_PLAN_ID: $(TEST_PLAN_ID)
