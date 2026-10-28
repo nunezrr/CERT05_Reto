@@ -1,6 +1,6 @@
 /**
  * Restaura db.json al estado original desde db.seed.json.
- * Equivale al "Copy-Item db.seed.json db.json" del Dia 1.
+ * Equivale al "Copy-Item db.seed.json db.json".
  * Lo usa el pipeline (local y CodeBuild) en la fase pre_build
  * para garantizar que cada corrida parte del mismo estado.
  */

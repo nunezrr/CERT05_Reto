@@ -46,7 +46,7 @@ e2e/
 
 ---
 
-## 1) Correr en LOCAL (igual que el Dia 4)
+## 1) Correr en LOCAL 
 
 ```powershell
 # Terminal 1 — app

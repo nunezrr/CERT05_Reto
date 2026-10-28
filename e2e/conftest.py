@@ -1,6 +1,6 @@
-"""Configuracion compartida de pytest para las pruebas E2E (Dia 5).
+"""Configuracion compartida de pytest para las pruebas E2E.
 
-Novedad del Dia 5: las MISMAS pruebas pueden correr en LOCAL o en la NUBE
+Novedad: las MISMAS pruebas pueden correr en LOCAL o en la NUBE
 (Sauce Labs) solo con variables de entorno. El codigo de las pruebas NO cambia.
 
 Fixtures:
@@ -77,7 +77,7 @@ def _reset_pedidos(base_url):
 
 
 # ──────────────────────────────────────────────────────────────────
-#  Enlace con Azure Test Plans (igual que el Dia 4): el tag @TC<id> del
+#  Enlace con Azure Test Plans: el tag @TC<id> del
 #  escenario viaja al JUnit como propiedad test_case_id. El pipeline, con
 #  tools/publicar_test_plan.py, usa ese ID para marcar el Test Case
 #  Passed/Failed en el plan. Asi, si un cambio rompe un test, el Test Plan
