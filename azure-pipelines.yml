@@ -209,7 +209,7 @@ stages:
     jobs:
       - job: e2e_sauce
         pool:
-          vmImage: 'ubuntu-24.04'
+          vmImage: 'Default'
         timeoutInMinutes: 30
         steps:
           - script: mkdir -p "$(Build.SourcesDirectory)/$(TEST_DIR)/resultados"
