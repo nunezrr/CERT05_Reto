@@ -80,8 +80,8 @@ servicio-tienda/
 npm run generar
 ```
 
-En vez de escribir el dataset a mano, lo generamos por codigo con Faker (igual que
-en el Dia 1). Con `faker.seed(2025)` el resultado es **reproducible**: los mismos
+En vez de escribir el dataset a mano, lo generamos por codigo con Faker. 
+Con `faker.seed(12345)` el resultado es **reproducible**: los mismos
 datos en cada corrida, por eso los tests son deterministas. Deja un producto inactivo
 con stock 0 a proposito (caso de borde). Escribe `datos/db.seed.json` en el
 formato que espera json-server: `{ "productos": [...], "pedidos": [...] }`.
